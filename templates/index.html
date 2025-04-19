@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Responsive Pie Chart</title>
+  <title>Customer Feedback Intelligence Platform</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -26,6 +26,7 @@
       max-width: 400px;
       height: 400px;
       position: relative;
+      margin-bottom: 40px;
     }
 
     canvas {
@@ -36,57 +37,125 @@
     label {
       font-size: 16px;
     }
+
+    input[type="text"] {
+      padding: 10px;
+      margin: 5px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
 
-  <h2>Toggle Options</h2>
-  <div id="controls">
-    <label><input type="checkbox" value="Option A" checked> Option A</label>
-    <label><input type="checkbox" value="Option B" checked> Option B</label>
-    <label><input type="checkbox" value="Option C" checked> Option C</label>
+  <h1>Customer Feedback Analysis</h1>
+  <input type="text" id="company_url" placeholder="Company URL">
+  <input type="text" id="product_url" placeholder="Product URL">
+  <button onclick="analyzeFeedback()">Analyze Feedback</button>
+
+  <div class="chart-container">
+    <canvas id="sentimentChart"></canvas>
   </div>
 
   <div class="chart-container">
-    <canvas id="myPieChart"></canvas>
+    <canvas id="satisfactionChart"></canvas>
   </div>
 
   <script>
-    const ctx = document.getElementById('myPieChart').getContext('2d');
+    const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+    const satisfactionCtx = document.getElementById('satisfactionChart').getContext('2d');
 
-    const chart = new Chart(ctx, {
+    const sentimentChart = new Chart(sentimentCtx, {
       type: 'pie',
       data: {
-        labels: ['Option A', 'Option B', 'Option C'],
+        labels: ['Positive', 'Negative', 'Neutral'],
         datasets: [{
-          data: [1, 1, 1],
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+          data: [0, 0, 0], // Initial data
+          backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Sentiment Analysis'
+          }
+        }
       }
     });
 
-    const checkboxes = document.querySelectorAll('#controls input[type="checkbox"]');
-
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', () => {
-        const selectedLabels = [];
-        const selectedData = [];
-        checkboxes.forEach(cb => {
-          if (cb.checked) {
-            selectedLabels.push(cb.value);
-            selectedData.push(1);
+    const satisfactionChart = new Chart(satisfactionCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Satisfied', 'Dissatisfied'],
+        datasets: [{
+          data: [0, 0], // Initial data
+          backgroundColor: ['#4CAF50', '#FF5722'],
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Customer Satisfaction'
           }
-        });
-
-        chart.data.labels = selectedLabels;
-        chart.data.datasets[0].data = selectedData;
-        chart.update();
-      });
+        }
+      }
     });
+
+    async function analyzeFeedback() {
+      const companyUrl = document.getElementById('company_url').value;
+      const productUrl = document.getElementById('product_url').value;
+
+      const response = await fetch('/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ company_url: companyUrl, product_url: productUrl })
+      });
+
+      const data = await response.json();
+
+      // Update sentiment chart
+      sentimentChart.data.datasets[0].data = [
+        data.sentiment_counts.positive,
+        data.sentiment_counts.negative,
+        data.sentiment_counts.neutral
+      ];
+      sentimentChart.update();
+
+      // Update satisfaction chart
+      satisfactionChart.data.datasets[0].data = [
+        data.sentiment_counts.positive, // Satisfied
+        data.sentiment_counts.negative  // Dissatisfied
+      ];
+      satisfactionChart.update();
+    }
   </script>
 </body>
 </html>
