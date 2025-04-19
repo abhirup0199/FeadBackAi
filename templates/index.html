@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Responsive Pie Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .chart-container {
+      width: 100%;
+      max-width: 400px;
+      height: 400px;
+      position: relative;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    label {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Toggle Options</h2>
+  <div id="controls">
+    <label><input type="checkbox" value="Option A" checked> Option A</label>
+    <label><input type="checkbox" value="Option B" checked> Option B</label>
+    <label><input type="checkbox" value="Option C" checked> Option C</label>
+  </div>
+
+  <div class="chart-container">
+    <canvas id="myPieChart"></canvas>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('myPieChart').getContext('2d');
+
+    const chart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Option A', 'Option B', 'Option C'],
+        datasets: [{
+          data: [1, 1, 1],
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    const checkboxes = document.querySelectorAll('#controls input[type="checkbox"]');
+
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const selectedLabels = [];
+        const selectedData = [];
+        checkboxes.forEach(cb => {
+          if (cb.checked) {
+            selectedLabels.push(cb.value);
+            selectedData.push(1);
+          }
+        });
+
+        chart.data.labels = selectedLabels;
+        chart.data.datasets[0].data = selectedData;
+        chart.update();
+      });
+    });
+  </script>
+</body>
+</html>
